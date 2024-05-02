@@ -27,7 +27,7 @@ final class AudioPlayerRenderProcessor: NSObject {
         self.outputAudioFormat = outputAudioFormat
     }
 
-    func attachCallback(on player: AVAudioUnit, audioFormat: AVAudioFormat) {
+    func attachCallback(on player: AVAudioNode, audioFormat: AVAudioFormat) {
         if player.auAudioUnit.inputBusses.count > 0 {
             do {
                 try player.auAudioUnit.inputBusses[0].setFormat(audioFormat)

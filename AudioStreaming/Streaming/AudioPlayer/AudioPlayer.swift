@@ -106,9 +106,9 @@ open class AudioPlayer {
     private var stateBeforePaused: InternalState = .initial
 
     /// The underlying `AVAudioEngine` object
-    private let audioEngine: AVAudioEngine
+    public let audioEngine: AVAudioEngine
     /// An `AVAudioUnit` object that represents the audio player
-    private(set) var player = AVAudioUnit()
+    private(set) var player = AVAudioPlayerNode()
     /// An `AVAudioUnitTimePitch` that controls the playback rate of the audio engine
     private let rateNode = AVAudioUnitTimePitch()
 
@@ -130,9 +130,8 @@ open class AudioPlayer {
 
     var entriesQueue: PlayerQueueEntries
 
-    public init(configuration: AudioPlayerConfiguration = .default) {
+    public init(engine: AVAudioEngine = AVAudioEngine(), configuration: AudioPlayerConfiguration = .default) {
         self.configuration = configuration.normalizeValues()
-        let engine = AVAudioEngine()
         audioEngine = engine
         rendererContext = AudioRendererContext(configuration: configuration, outputAudioFormat: outputAudioFormat)
         playerContext = AudioPlayerContext()
@@ -416,18 +415,8 @@ open class AudioPlayer {
 
     /// Creates and configures an `AVAudioUnit` with an output configuration
     /// and assigns it to the `player` variable.
-    private func configPlayerNode() {
-        AVAudioUnit.createAudioUnit(with: UnitDescriptions.output) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case let .success(unit):
-                self.player = unit
-                self.playerRenderProcessor.attachCallback(on: unit, audioFormat: self.outputAudioFormat)
-            case let .failure(error):
-                assertionFailure("couldn't create player unit: \(error)")
-                self.raiseUnexpected(error: .audioSystemError(.playerNotFound))
-            }
-        }
+    private func configPlayerNode() {     
+        self.playerRenderProcessor.attachCallback(on: self.player, audioFormat: self.outputAudioFormat)
     }
 
     /// Attaches callbacks to the `playerContext` and `renderProcessor`.
